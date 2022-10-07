@@ -269,9 +269,11 @@ class AlunoControllerTest {
 
         MvcResult result = mockMvc.perform(patch("/alunos/{id}/{nome}", aluno.getId(), aluno.getNome())
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().is2xxSuccessful())
+                .andExpect(status().isPartialContent())
                 .andReturn();
-        Aluno aluno1 = objectMapper.readValue(result.getResponse().getContentAsString(), Aluno.class);
-        Assertions.assertEquals("Jonathan2", aluno1.getNome());
+
+        String response = result.getResponse().getContentAsString();
+        String json = objectMapper.writeValueAsString(aluno);
+        Assertions.assertEquals(json, response);
     }
 }
