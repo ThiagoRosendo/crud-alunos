@@ -22,8 +22,7 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(SpringExtension.class)
@@ -80,8 +79,8 @@ class AlunoControllerTest {
     }
 
     @Test
-    @DisplayName("Deve cadastra um novo aluno")
-    void deveCadastraUmNovoAluno() throws Exception {
+    @DisplayName("Deve cadastrar um novo aluno")
+    void deveCadastrarUmNovoAluno() throws Exception {
 
         // Simula o metodo salvar
         when(alunoService.salvar(any())).thenReturn(aluno);
@@ -185,8 +184,8 @@ class AlunoControllerTest {
     }
 
     @Test
-    @DisplayName("Deve retorna o aluno quando buscar por id")
-    void deveRetornaOAlunoQuandoBuscarPorId() throws Exception {
+    @DisplayName("Deve retornar o aluno quando buscar por id")
+    void deveRetornarOAlunoQuandoBuscarPorId() throws Exception {
 //        Optional<Aluno> aluno1 = Optional.of(aluno);
         when(alunoService.buscaPorId(anyLong())).thenReturn(aluno);
 
@@ -200,32 +199,79 @@ class AlunoControllerTest {
         Assertions.assertEquals("Jonathan2", aluno1.getNome());
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    /*
     @Test
-void whenValidInput_thenMapsToBusinessModel() throws Exception {
-  UserResource user = new UserResource("Zaphod", "zaphod@galaxy.net");
-  mockMvc.perform(...);
+    @DisplayName("Deve retornar o aluno quando buscar por idade")
+    void deveRetornarOAlunoQuandoBuscarPorIdade() throws Exception {
+        when(alunoService.buscaPorIdade(anyLong())).thenReturn(List.of(aluno));
 
-//ArgumentCaptor para capturar o Aluno objeto que foi passado para o metodo salvar e afirmar que ele contém os valores esperados.
-  ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
-  verify(registerUseCase, times(1)).registerUser(userCaptor.capture(), eq(true));
-  assertThat(userCaptor.getValue().getName()).isEqualTo("Zaphod");
-  assertThat(userCaptor.getValue().getEmail()).isEqualTo("zaphod@galaxy.net");
-}
-     */
+        MvcResult result = mockMvc.perform(get("/alunos/idades")
+                        .param("idade", "22")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().is2xxSuccessful())
+                .andReturn();
+        List lista = objectMapper.readValue(result.getResponse().getContentAsString(), List.class);
+
+        Assertions.assertEquals(1, lista.size());
+
+    }
+
+    @Test
+    @DisplayName("Deve retornar o aluno quando buscar por nome")
+    void deveRetornarOAlunoQuandoBuscarPorNome() throws Exception {
+        when(alunoService.buscaPorNome(anyString())).thenReturn(List.of(aluno));
+
+        MvcResult result = mockMvc.perform(get("/alunos/nomes")
+                        .param("nome", "Jonathan2")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().is2xxSuccessful())
+                .andReturn();
+        List lista = objectMapper.readValue(result.getResponse().getContentAsString(), List.class);
+
+        Assertions.assertEquals(1, lista.size());
+
+    }
+
+    @Test
+    @DisplayName("Deve retornar uma lista de alunos ao buscar por nome, idade e doc.")
+    void deveRetornarOAlunoQuandoBuscarPorNomeIdadeDoc() throws Exception {
+        when(alunoService.filter(anyString(), anyLong(), anyString())).thenReturn(List.of(aluno));
+
+        MvcResult result = mockMvc.perform(get("/alunos/fiters")
+                        .param("nome", "Jonathan2")
+                        .param("idade", "22")
+                        .param("documento", "4354354333")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().is2xxSuccessful())
+                .andReturn();
+        List list = objectMapper.readValue(result.getResponse().getContentAsString(), List.class);
+
+        Assertions.assertEquals(1, list.size());
+
+    }
+
+    @Test
+    @DisplayName("Deve retornar a mensagem de aluno deletado ao deletar por ID")
+    void retornarMensagemQuandoDeletarPorId() throws Exception {
+        when(alunoService.delete(anyLong())).thenReturn("Aluno deletado");
+
+        MvcResult result = mockMvc.perform(delete("/alunos/{id}", aluno.getId())
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().is2xxSuccessful())
+                .andReturn();
+        String resposta = result.getResponse().getContentAsString();
+        Assertions.assertEquals("Aluno deletado", resposta);
+    }
+
+    @Test
+    @DisplayName("Deve alterar o nome do aluno pelo ID")
+    void alterarNomeDoAlunoPorId() throws Exception {
+        when(alunoService.alterarAluno(anyLong(), anyString())).thenReturn(aluno);
+
+        MvcResult result = mockMvc.perform(patch("/alunos/{id}/{nome}", aluno.getId(), aluno.getNome())
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().is2xxSuccessful())
+                .andReturn();
+        Aluno aluno1 = objectMapper.readValue(result.getResponse().getContentAsString(), Aluno.class);
+        Assertions.assertEquals("Jonathan2", aluno1.getNome());
+    }
 }
